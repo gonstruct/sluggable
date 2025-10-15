@@ -555,10 +555,10 @@ func TestWithWhere_Integration(t *testing.T) {
 
 	s := New(WithWhere(`"user_id" = ?`, 123))
 	_, err = s.Generate(db, "Test Article", WithTableName("articles"))
-
 	// Test that the function works correctly with WHERE clauses
 	if err != nil {
 		t.Errorf("Generate() error = %v", err)
+
 		return
 	}
 
