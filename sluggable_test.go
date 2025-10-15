@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:    "custom separator",
-			options: []sluggableOption{WithSeperator("_")},
+			options: []sluggableOption{WithSeparator("_")},
 			want:    "_",
 		},
 	}
@@ -29,13 +29,14 @@ func TestNew(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New(tt.options...)
-			if s.options.seperator != tt.want {
-				t.Errorf("New() separator = %v, want %v", s.options.seperator, tt.want)
+			if s.options.separator != tt.want {
+				t.Errorf("New() separator = %v, want %v", s.options.separator, tt.want)
 			}
 		})
 	}
 }
 
+//nolint:funlen
 func TestSluggable_Generate(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -115,7 +116,7 @@ func TestSluggable_Generate(t *testing.T) {
 		{
 			name:    "custom separator",
 			value:   "hello world",
-			options: []sluggableOption{WithTableName("articles"), WithSeperator("_")},
+			options: []sluggableOption{WithTableName("articles"), WithSeparator("_")},
 			mockSetup: func(mock sqlmock.Sqlmock) {
 				rows := sqlmock.NewRows([]string{"id", "slug"})
 				mock.ExpectQuery(`SELECT "id", "slug" FROM "articles" WHERE \("slug" = \$1 OR "slug" LIKE \$2\)`).
@@ -181,11 +182,13 @@ func TestSluggable_Generate(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Sluggable.Generate() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
 			if tt.wantErr && tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
 				t.Errorf("Sluggable.Generate() error = %v, want error containing %v", err, tt.errContains)
+
 				return
 			}
 
@@ -216,6 +219,7 @@ func TestGenerate_GlobalFunction(t *testing.T) {
 	got, err := Generate(db, "Test Article", WithTableName("articles"))
 	if err != nil {
 		t.Errorf("Generate() error = %v", err)
+
 		return
 	}
 
@@ -233,14 +237,14 @@ func TestConfigure(t *testing.T) {
 	// Reset global state
 	_global = nil
 
-	Configure(WithSeperator("_"), WithFirstUniqueSuffix(1))
+	Configure(WithSeparator("_"), WithFirstUniqueSuffix(1))
 
 	if _global == nil {
 		t.Fatal("Configure() should initialize global instance")
 	}
 
-	if _global.options.seperator != "_" {
-		t.Errorf("Configure() separator = %v, want _", _global.options.seperator)
+	if _global.options.separator != "_" {
+		t.Errorf("Configure() separator = %v, want _", _global.options.separator)
 	}
 
 	if _global.options.firstUniqueSuffix != 1 {
@@ -248,12 +252,13 @@ func TestConfigure(t *testing.T) {
 	}
 
 	// Test reconfiguring existing global
-	Configure(WithSeperator("-"))
-	if _global.options.seperator != "-" {
-		t.Errorf("Configure() reconfigure separator = %v, want -", _global.options.seperator)
+	Configure(WithSeparator("-"))
+	if _global.options.separator != "-" {
+		t.Errorf("Configure() reconfigure separator = %v, want -", _global.options.separator)
 	}
 }
 
+//nolint:funlen
 func TestOptions(t *testing.T) {
 	t.Run("WithMethod", func(t *testing.T) {
 		customMethod := func(value, separator string) string {
@@ -271,10 +276,10 @@ func TestOptions(t *testing.T) {
 		}
 	})
 
-	t.Run("WithSeperator", func(t *testing.T) {
-		s := New(WithSeperator("_"))
-		if s.options.seperator != "_" {
-			t.Errorf("WithSeperator() = %v, want _", s.options.seperator)
+	t.Run("WithSeparator", func(t *testing.T) {
+		s := New(WithSeparator("_"))
+		if s.options.separator != "_" {
+			t.Errorf("WithSeparator() = %v, want _", s.options.separator)
 		}
 	})
 
@@ -332,6 +337,7 @@ func TestWithWhere_BasicFunctionality(t *testing.T) {
 	params, exists := s.options.wheres["user_id = ?"]
 	if !exists {
 		t.Error("Custom WHERE clause not found")
+
 		return
 	}
 
@@ -373,7 +379,7 @@ func TestSluggable_GenerateWithScanError(t *testing.T) {
 	}
 }
 
-// Test interface compliance
+// Test interface compliance.
 func TestInterfaceCompliance(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -397,7 +403,7 @@ func TestInterfaceCompliance(t *testing.T) {
 	var _ contextExecutor = tx
 }
 
-// Benchmark tests
+// Benchmark tests.
 func BenchmarkSluggable_Generate(b *testing.B) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -424,7 +430,7 @@ func BenchmarkSluggable_Generate(b *testing.B) {
 	}
 }
 
-// Test the new WithDeleted and WithWhere functionality
+// Test the new WithDeleted and WithWhere functionality.
 func TestWithDeleted_NewBehavior(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -460,6 +466,7 @@ func TestWithDeleted_NewBehavior(t *testing.T) {
 				actualParams, exists := s.options.wheres[expectedSQL]
 				if !exists {
 					t.Errorf("Expected WHERE clause '%s' not found", expectedSQL)
+
 					continue
 				}
 
@@ -511,11 +518,13 @@ func TestWithWhere_Functionality(t *testing.T) {
 			actualParams, exists := s.options.wheres[tt.whereSQL]
 			if !exists {
 				t.Errorf("Custom WHERE clause '%s' not found", tt.whereSQL)
+
 				return
 			}
 
 			if len(actualParams) != len(tt.expectedParams) {
 				t.Errorf("Expected %d parameters, got %d", len(tt.expectedParams), len(actualParams))
+
 				return
 			}
 
@@ -538,20 +547,23 @@ func TestWithWhere_Integration(t *testing.T) {
 	// Test that WithWhere adds proper WHERE clauses to the SQL query
 	rows := sqlmock.NewRows([]string{"id", "slug"})
 
-	// Use a more flexible regex that can handle different WHERE clause orders
-	// Since maps don't guarantee iteration order, we need to be flexible
+	// Since map iteration order is not guaranteed, we need to be flexible with WHERE clause order
+	// The query should contain the basic WHERE clause and our custom clauses
 	mock.ExpectQuery(`SELECT "id", "slug" FROM "articles" WHERE`).
+		WithArgs("test-article", "test-article-%", 123).
 		WillReturnRows(rows)
 
 	s := New(WithWhere(`"user_id" = ?`, 123))
 	_, err = s.Generate(db, "Test Article", WithTableName("articles"))
 
-	// We expect some kind of error due to parameter mismatch (there's a bug in the implementation)
-	// but we're testing that the function doesn't panic and handles it gracefully
-	if err == nil {
-		t.Log("Generate succeeded (this might indicate the bug was fixed)")
-	} else {
-		t.Logf("Generate failed as expected due to implementation bug: %v", err)
+	// Test that the function works correctly with WHERE clauses
+	if err != nil {
+		t.Errorf("Generate() error = %v", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("There were unfulfilled expectations: %s", err)
 	}
 }
 
@@ -574,9 +586,9 @@ func TestWithDeleted_Integration(t *testing.T) {
 
 	s := New(WithDeleted())
 	_, err = s.Generate(db, "Test Article", WithTableName("articles"))
-
 	if err != nil {
 		t.Errorf("Generate() error = %v", err)
+
 		return
 	}
 
@@ -607,6 +619,7 @@ func TestCombinedWithDeletedAndWithWhere(t *testing.T) {
 		actualParams, exists := s.options.wheres[expectedSQL]
 		if !exists {
 			t.Errorf("Expected WHERE clause '%s' not found", expectedSQL)
+
 			continue
 		}
 
@@ -648,6 +661,7 @@ func TestMultipleWithWhere(t *testing.T) {
 		actualParams, exists := s.options.wheres[expectedSQL]
 		if !exists {
 			t.Errorf("Expected WHERE clause '%s' not found", expectedSQL)
+
 			continue
 		}
 

@@ -2,7 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"gonstruct/sluggable"
+
+	"github.com/gonstruct/sluggable"
 )
 
 type DatabaseModel struct {
@@ -13,6 +14,7 @@ type DatabaseModel struct {
 	DeletedAt    sql.NullTime `db:"deleted_at"`
 }
 
+//nolint:gochecknoinits
 func init() {
 	sluggable.Configure(
 		sluggable.WithDeleted(), // Include deleted records
@@ -22,6 +24,7 @@ func init() {
 
 func (d *DatabaseModel) OnCreate(db *sql.DB) (err error) {
 	d.Slug, err = sluggable.Generate(db, d.Name, sluggable.WithTableName("database_models"))
+
 	return err
 }
 
@@ -36,5 +39,6 @@ func (d *DatabaseModel) OnUpdate(db *sql.DB) (err error) {
 		sluggable.WithTableName("database_models"),
 		sluggable.WithIdentifier(d.ID), // Exclude current record when checking for existing slugs
 	)
+
 	return err
 }

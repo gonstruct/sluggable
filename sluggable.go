@@ -30,22 +30,24 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 		return "", fmt.Errorf("[sluggable] table name cannot be empty")
 	}
 
-	slug := opts.method(value, opts.seperator)
+	slug := opts.method(value, opts.separator)
 
 	sql := `SELECT "id", "{column}" FROM "{table}" WHERE ("{column}" = $1 OR "{column}" LIKE $2)`
 
-	params := []any{slug, fmt.Sprint(slug, opts.seperator, "%")}
+	params := []any{slug, fmt.Sprint(slug, opts.separator, "%")}
+
 	for whereSql, args := range opts.wheres {
 		normalizedSql := whereSql
 
 		for i := 0; i < len(args); i++ {
 			placeholder := fmt.Sprintf("$%d", len(params)+1)
-			normalizedSql = strings.ReplaceAll(normalizedSql, "?", placeholder)
+			// Replace only the first occurrence of "?" with the correct placeholder
+			normalizedSql = strings.Replace(normalizedSql, "?", placeholder, 1)
+
 			params = append(params, args[i])
 		}
 
 		sql += fmt.Sprintf(" AND (%s)", normalizedSql)
-		params = append(params, args...)
 	}
 
 	sql = strings.ReplaceAll(sql, "{table}", opts.tableName)
@@ -58,12 +60,15 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 	defer rows.Close()
 
 	simularList := make(map[string]string)
+
 	for rows.Next() {
 		var idValue string
+
 		var slugValue string
 		if err := rows.Scan(&idValue, &slugValue); err != nil {
 			return "", fmt.Errorf("[sluggable] failed to scan sluggable value: %w", err)
 		}
+
 		simularList[idValue] = slugValue
 	}
 
@@ -80,8 +85,10 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 	}
 
 	latestSuffix := 0
+
 	for _, simular := range simularList {
-		suffix := strings.TrimPrefix(simular, fmt.Sprint(slug, opts.seperator))
+		suffix := strings.TrimPrefix(simular, fmt.Sprint(slug, opts.separator))
+
 		suffixAsNumber, err := strconv.Atoi(suffix)
 		if err != nil {
 			continue
@@ -93,10 +100,10 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 	}
 
 	if latestSuffix > 0 {
-		return fmt.Sprint(slug, opts.seperator, latestSuffix+1), nil
+		return fmt.Sprint(slug, opts.separator, latestSuffix+1), nil
 	}
 
-	return fmt.Sprint(slug, opts.seperator, opts.firstUniqueSuffix), nil
+	return fmt.Sprint(slug, opts.separator, opts.firstUniqueSuffix), nil
 }
 
 func Generate(db contextExecutor, value string, options ...sluggableOption) (string, error) {

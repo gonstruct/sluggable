@@ -1,8 +1,8 @@
 package sluggable
 
 type options struct {
-	method    func(value, seperator string) string // Defaults to "slugify"
-	seperator string                               // Defaults to "-"
+	method    func(value, separator string) string // Defaults to "slugify"
+	separator string                               // Defaults to "-"
 
 	tableName  string // Empty by default, must be set
 	columnName string // Defaults to "slug"
@@ -16,15 +16,15 @@ type options struct {
 
 type sluggableOption func(*options)
 
-func WithMethod(method func(value, seperator string) string) sluggableOption {
+func WithMethod(method func(value, separator string) string) sluggableOption {
 	return func(opts *options) {
 		opts.method = method
 	}
 }
 
-func WithSeperator(seperator string) sluggableOption {
+func WithSeparator(separator string) sluggableOption {
 	return func(opts *options) {
-		opts.seperator = seperator
+		opts.separator = separator
 	}
 }
 

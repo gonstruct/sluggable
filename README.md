@@ -4,16 +4,16 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gonstruct/sluggable)](https://goreportcard.com/report/github.com/gonstruct/sluggable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A powerful and flexible Go library for generating unique database-safe slugs with collision detection and resolution.
+A powerful and flexible Go library for generating unique PostgreSQL-safe slugs with collision detection and resolution.
 
 ## Features
 
 - **Unique Slug Generation**: Automatically generates unique slugs by checking existing database entries
 - **Collision Resolution**: Intelligently handles duplicate slugs by appending numeric suffixes
-- **Database Agnostic**: Works with any SQL database through Go's `database/sql` interface
+- **PostgreSQL Support**: Optimized for PostgreSQL databases with proper parameter binding
 - **Flexible Configuration**: Customizable separators, column names, and slug generation methods
-- **Soft Delete Support**: Built-in support for soft delete patterns
-- **Custom Queries**: Add custom WHERE clauses for advanced filtering
+- **Soft Delete Support**: Built-in support for soft delete patterns with automatic exclusion
+- **Custom WHERE Clauses**: Add custom filtering conditions for advanced use cases
 - **Global & Instance Configuration**: Use global defaults or create custom instances
 
 ## Installation
@@ -33,11 +33,11 @@ import (
     "log"
     
     "github.com/gonstruct/sluggable"
-    _ "github.com/lib/pq" // or your preferred database driver
+    _ "github.com/lib/pq" // PostgreSQL driver
 )
 
 func main() {
-    db, err := sql.Open("postgres", "your-connection-string")
+    db, err := sql.Open("postgres", "your-postgresql-connection-string")
     if err != nil {
         log.Fatal(err)
     }
@@ -77,7 +77,7 @@ func init() {
         sluggable.WithColumnName("slug"),        // Default: "slug"
         sluggable.WithSeperator("-"),            // Default: "-"
         sluggable.WithFirstUniqueSuffix(2),      // Default: 2
-        sluggable.WithDeleted("deleted_at"),     // For soft deletes
+        // Note: Soft deletes are excluded by default, use WithDeleted() to include them
     )
 }
 ```
@@ -130,19 +130,19 @@ Add additional filtering conditions:
 ```go
 slug, err := sluggable.Generate(db, "Article Title",
     sluggable.WithTableName("articles"),
-    sluggable.WithQuery(`"user_id" = $1`, userID),
-    sluggable.WithDeleted("deleted_at"), // Exclude soft-deleted records
+    sluggable.WithWhere(`"user_id" = ?`, userID), // Filter by user
+    // Soft deletes are excluded by default
 )
 ```
 
 #### Soft Delete Support
 
-Automatically exclude soft-deleted records:
+By default, soft-deleted records are excluded (`deleted_at IS NULL`). To include soft-deleted records:
 
 ```go
 slug, err := sluggable.Generate(db, "Article Title",
     sluggable.WithTableName("articles"),
-    sluggable.WithDeleted("deleted_at"), // NULL values will be included
+    sluggable.WithDeleted(), // Include soft-deleted records
 )
 ```
 
@@ -156,8 +156,8 @@ slug, err := sluggable.Generate(db, "Article Title",
 | `WithMethod(func)` | Custom slug generation function | Uses `github.com/gosimple/slug` |
 | `WithFirstUniqueSuffix(int)` | Starting number for duplicate resolution | `2` |
 | `WithIdentifier(string)` | ID of record being updated | `""` |
-| `WithDeleted(string)` | Soft delete column name | N/A |
-| `WithQuery(string, ...interface{})` | Custom WHERE clause | N/A |
+| `WithDeleted()` | Include soft-deleted records (removes default exclusion) | Excludes `deleted_at IS NULL` by default |
+| `WithWhere(string, ...interface{})` | Add custom WHERE clause with parameters | N/A |
 
 ## How It Works
 
@@ -177,11 +177,12 @@ The function will return `hello-world-4`.
 
 ## Database Requirements
 
-Your table must have:
+**Currently supports PostgreSQL only.** Your PostgreSQL table must have:
 - An `id` column (any type that can be scanned into a string)
 - A slug column (default name: `slug`)
+- Optional: `deleted_at` column for soft delete support (automatically excluded by default)
 
-Example table structure:
+Example PostgreSQL table structure:
 
 ```sql
 CREATE TABLE articles (
@@ -242,6 +243,17 @@ golangci-lint run
 # Run linter with auto-fix
 golangci-lint run --fix
 ```
+
+## Database Support
+
+Currently, this library supports **PostgreSQL only**. The SQL queries and parameter binding are optimized for PostgreSQL's syntax and features.
+
+### Planned Future Support
+- MySQL/MariaDB
+- SQLite
+- Other SQL databases
+
+If you need support for other databases, please [open an issue](https://github.com/gonstruct/sluggable/issues) or contribute a pull request.
 
 ## License
 

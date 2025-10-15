@@ -1,0 +1,27 @@
+version: "2" # https://golangci-lint.run/usage/configuration/
+linters:
+  default: fast
+  disable:
+    - wsl
+    - testpackage
+    - depguard
+    # - gochecknoinits
+    # - nlreturn
+    - mnd
+    # - misspell
+    # - inamedparam
+    # - gomoddirectives
+    # - dupl
+    # - funlen
+    # - cyclop
+
+  settings:
+    lll:
+      line-length: 160
+
+formatters:
+  enable:
+    # - gci
+    - gofmt
+    - gofumpt
+    - goimports

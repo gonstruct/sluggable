@@ -12,10 +12,10 @@ const (
 
 func getDefaultOptions() *options {
 	return &options{
-		method: func(value, seperator string) string {
+		method: func(value, separator string) string {
 			return slugify.MakeLang(value, "en")
 		},
-		seperator:         "-",
+		separator:         "-",
 		tableName:         "",
 		columnName:        "slug",
 		firstUniqueSuffix: 2,
@@ -28,6 +28,7 @@ func getDefaultOptions() *options {
 func Configure(options ...sluggableOption) {
 	if _global == nil {
 		_global = New(options...)
+
 		return
 	}
 
