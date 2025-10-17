@@ -14,7 +14,7 @@ linters:
     # - dupl
     # - funlen
     # - cyclop
-
+    - copyloopvar
   settings:
     lll:
       line-length: 160

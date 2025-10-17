@@ -53,6 +53,11 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 	sql = strings.ReplaceAll(sql, "{table}", opts.tableName)
 	sql = strings.ReplaceAll(sql, "{column}", opts.columnName)
 
+	if opts.debug {
+		fmt.Printf("[sluggable] %s\n", sql)
+		fmt.Printf("[sluggable] %v\n", params)
+	}
+
 	rows, err := db.Query(sql, params...)
 	if err != nil {
 		return "", fmt.Errorf("[sluggable] failed to query sluggable: %w", err)
@@ -106,10 +111,10 @@ func (s *Sluggable) Generate(db contextExecutor, value string, options ...slugga
 	return fmt.Sprint(slug, opts.separator, opts.firstUniqueSuffix), nil
 }
 
-func Generate(db contextExecutor, value string, options ...sluggableOption) (string, error) {
-	if _global == nil {
-		_global = New()
-	}
+// func Generate(db contextExecutor, value string, options ...sluggableOption) (string, error) {
+// 	// if _global == nil {
+// 	// 	_global = New()
+// 	// }
 
-	return _global.Generate(db, value, options...)
-}
+// 	// return _global.Generate(db, value, options...)
+// }

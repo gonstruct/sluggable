@@ -14,16 +14,13 @@ type DatabaseModel struct {
 	DeletedAt    sql.NullTime `db:"deleted_at"`
 }
 
-//nolint:gochecknoinits
-func init() {
-	sluggable.Configure(
-		sluggable.WithDeleted(), // Include deleted records
-		sluggable.WithWhere(`custom_column = ? AND other_column = ? `, 1, 2),
-	)
-}
+var globalSlugger = sluggable.New(
+	sluggable.WithDeleted(), // Include deleted records
+	sluggable.WithWhere(`custom_column = ? AND other_column = ? `, 1, 2),
+)
 
 func (d *DatabaseModel) OnCreate(db *sql.DB) (err error) {
-	d.Slug, err = sluggable.Generate(db, d.Name, sluggable.WithTableName("database_models"))
+	d.Slug, err = globalSlugger.Generate(db, d.Name, sluggable.WithTableName("database_models"))
 
 	return err
 }

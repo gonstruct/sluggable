@@ -4,7 +4,7 @@ import (
 	slugify "github.com/gosimple/slug"
 )
 
-var _global *Sluggable
+// var _global *Sluggable
 
 const (
 	excludeDeletedWhere = `"deleted_at" IS NULL`
@@ -25,14 +25,14 @@ func getDefaultOptions() *options {
 	}
 }
 
-func Configure(options ...sluggableOption) {
-	if _global == nil {
-		_global = New(options...)
+// func Configure(options ...sluggableOption) {
+// 	// if _global == nil {
+// 	// 	_global = New(options...)
 
-		return
-	}
+// 	// 	return
+// 	// }
 
-	for _, option := range options {
-		option(_global.options)
-	}
-}
+// 	// for _, option := range options {
+// 	// 	option(_global.options)
+// 	// }
+// }

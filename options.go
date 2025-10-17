@@ -1,6 +1,8 @@
 package sluggable
 
 type options struct {
+	debug bool // Defaults to false
+
 	method    func(value, separator string) string // Defaults to "slugify"
 	separator string                               // Defaults to "-"
 
@@ -15,6 +17,12 @@ type options struct {
 }
 
 type sluggableOption func(*options)
+
+func WithDebug(debug bool) sluggableOption {
+	return func(opts *options) {
+		opts.debug = debug
+	}
+}
 
 func WithMethod(method func(value, separator string) string) sluggableOption {
 	return func(opts *options) {
