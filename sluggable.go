@@ -7,13 +7,13 @@ import (
 )
 
 type Sluggable struct {
-	options *options
+	options options
 }
 
 func New(options ...sluggableOption) *Sluggable {
 	opts := getDefaultOptions()
 	for _, option := range options {
-		option(opts)
+		option(&opts)
 	}
 
 	return &Sluggable{options: opts}
@@ -21,9 +21,9 @@ func New(options ...sluggableOption) *Sluggable {
 
 //nolint:cyclop,funlen
 func (s *Sluggable) Generate(db contextExecutor, value string, options ...sluggableOption) (string, error) {
-	opts := s.options
+	opts := s.options // Important: copy instead of pointer reference
 	for _, option := range options {
-		option(opts)
+		option(&opts)
 	}
 
 	if len(opts.tableName) == 0 {

@@ -10,8 +10,8 @@ const (
 	excludeDeletedWhere = `"deleted_at" IS NULL`
 )
 
-func getDefaultOptions() *options {
-	return &options{
+func getDefaultOptions() options {
+	return options{
 		method: func(value, separator string) string {
 			return slugify.MakeLang(value, "en")
 		},
